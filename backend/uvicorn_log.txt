@@ -1,0 +1,7 @@
+INFO:     Started server process [71770]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+✅ MongoDB connected
+INFO:     127.0.0.1:49231 - "POST /units/harmonize/single HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49255 - "POST /ingestion/upload_raw HTTP/1.1" 500 Internal Server Error

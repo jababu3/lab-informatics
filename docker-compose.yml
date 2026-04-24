@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: lab-mongodb
+    restart: always
+    command: ["--auth"]
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - lab-network
+
+  # Simple PostgreSQL — used for user auth (JWT)
+  postgres:
+    image: postgres:15
+    container_name: lab-postgres
+    restart: always
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: labuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: lab_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+
+  backend:
+    build: ./backend
+    container_name: lab-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/lab_informatics?authSource=admin
+      - POSTGRES_URL=postgresql://labuser:${POSTGRES_PASSWORD}@postgres:5432/lab_db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES:-480}
+      # Ollama (scientist agent) — points to host machine where Ollama runs
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral:7b}
+      - ELN_API_URL=http://localhost:8000
+      - AGENT_JWT_TOKEN=${AGENT_JWT_TOKEN:-}
+    volumes:
+      - ./backend:/app
+      - ./scripts:/app/scripts
+      # Lab-data-simulator mounted from sibling repo (pip install -e on container start)
+      - ../lab-data-simulator:/lab-data-simulator
+    depends_on:
+      - mongodb
+      - postgres
+    networks:
+      - lab-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Linux support for host.docker.internal
+
+  frontend:
+    build: ./frontend
+    container_name: lab-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - lab-network
+
+volumes:
+  mongodb_data:
+  postgres_data:
+
+
+networks:
+  lab-network:
+    driver: bridge
