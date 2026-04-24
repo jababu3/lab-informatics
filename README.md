@@ -1,6 +1,6 @@
 # Lab Informatics
 
-A hands-on lab informatics learning environment for drug discovery. Run it entirely on your laptop. Learn by building and breaking things.
+A hands-on lab informatics learning environment for drug discovery. Run it entirely on your laptop. Learn by building and breaking things.  Please let me know if you have issues or questions.
 
 This system simulates the core software infrastructure used in real pharmaceutical research:
 - **Electronic Lab Notebook (ELN)** with 21 CFR Part 11 compliance
