@@ -17,7 +17,7 @@ except Exception as e:
     print(f"⚠️  MongoDB: {e}")
 
 try:
-    from rdkit import Chem
+    from rdkit import Chem  # noqa: F401
 
     RDKIT_AVAILABLE = True
 except ImportError:

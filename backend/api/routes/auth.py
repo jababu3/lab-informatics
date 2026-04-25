@@ -9,7 +9,6 @@ GET  /auth/me        — Return the current user's profile (requires token).
 GET  /auth/users     — List all users (admin only).
 """
 
-from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Response
@@ -73,8 +72,6 @@ async def register(
     # token check here because we can't use `Depends(get_current_user)` while
     # also allowing the first-user open-registration path.
     if not is_first_user:
-        from fastapi import Request
-
         # Callers must supply Authorization: Bearer <token> themselves
         # We re-use the require_role logic via a secondary dependency in the
         # route signature — but for simplicity we raise FORBIDDEN here.
@@ -151,7 +148,7 @@ async def login(
         db.query(User)
         .filter(
             User.username == form_data.username,
-            User.is_active == True,
+            User.is_active.is_(True),
         )
         .first()
     )

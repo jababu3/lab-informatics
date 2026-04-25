@@ -2,9 +2,9 @@ from typing import Dict
 
 try:
     from rdkit import Chem
-    from rdkit.Chem import Descriptors, AllChem, Draw
+    from rdkit.Chem import Descriptors, AllChem, Draw  # noqa: F401
     from rdkit.Chem.Draw import rdMolDraw2D
-    from rdkit import DataStructs
+    from rdkit import DataStructs  # noqa: F401
 
     RDKIT_AVAILABLE = True
 except ImportError:

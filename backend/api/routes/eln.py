@@ -16,19 +16,16 @@ here serves as a functional placeholder that satisfies the intent of re-auth in
 a self-hosted development environment.
 """
 
-import hashlib
-import json
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Query
 from fastapi.responses import FileResponse
 
 from models.schemas import ELNEntry, SignatureRequest
 from api.database import MONGO_AVAILABLE, db
-from api.auth import get_current_user, get_current_user_optional, require_role
+from api.auth import get_current_user, require_role
 from api.postgres import User
 from api.services import eln_service
 

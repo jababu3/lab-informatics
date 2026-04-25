@@ -27,5 +27,5 @@ async def harmonize_single(
         return {"status": "success", "data": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Internal unit conversion error.")

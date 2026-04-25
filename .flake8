@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 120
+# E501: black handles formatting and cannot auto-wrap strings/docstrings
+# W503/W504: black's line-break style conflicts with these
+extend-ignore = E501, W503, W504
+exclude =
+    .venv,
+    __pycache__,
+    .git,
+    dist,
+    build,
+    backend/.venv

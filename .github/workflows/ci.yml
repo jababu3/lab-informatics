@@ -24,4 +24,4 @@ jobs:
         run: black --check backend/
 
       - name: Lint (flake8)
-        run: flake8 backend/ --max-line-length=100 --exclude=backend/.venv
+        run: flake8 backend/

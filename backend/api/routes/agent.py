@@ -7,7 +7,7 @@ GET  /agent/health  — Check simulator and Ollama availability.
 """
 
 from typing import Optional
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, Request
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from api.auth import get_current_user_optional
