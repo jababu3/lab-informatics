@@ -23,9 +23,7 @@ Instead, report it privately via one of the following:
 
 ### What to expect
 
-- Acknowledgement within **3 days**
-- A status update within **2 weeks**
-- Credit in the release notes if you wish
+- I'll try to get to it when I can.  No promises made.
 
 ## Scope
 
