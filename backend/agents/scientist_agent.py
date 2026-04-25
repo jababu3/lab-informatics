@@ -104,11 +104,9 @@ class LabScientistAgent:
 
     def _check_simulator(self) -> bool:
         try:
-            from lab_data_simulator.simulators import (
-                PlateReader,
-                SPRSimulator,
-            )  # noqa: F401
+            import importlib
 
+            importlib.import_module("lab_data_simulator.simulators")
             return True
         except ImportError as e:
             logger.warning(f"lab-data-simulator not available: {e}")
