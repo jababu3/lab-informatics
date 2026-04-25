@@ -104,7 +104,10 @@ class LabScientistAgent:
 
     def _check_simulator(self) -> bool:
         try:
-            from lab_data_simulator.simulators import PlateReader, SPRSimulator  # noqa: F401
+            from lab_data_simulator.simulators import (
+                PlateReader,
+                SPRSimulator,
+            )  # noqa: F401
 
             return True
         except ImportError as e:

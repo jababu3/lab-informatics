@@ -98,7 +98,9 @@ async def get_current_user(
         raise credentials_exception
 
     user = (
-        db.query(User).filter(User.username == username, User.is_active.is_(True)).first()
+        db.query(User)
+        .filter(User.username == username, User.is_active.is_(True))
+        .first()
     )
     if user is None:
         raise credentials_exception
