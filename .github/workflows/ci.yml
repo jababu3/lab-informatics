@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint (backend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linting tools
+        run: pip install black flake8
+
+      - name: Check formatting (black)
+        run: black --check backend/
+
+      - name: Lint (flake8)
+        run: flake8 backend/ --max-line-length=100 --exclude=backend/.venv

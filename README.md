@@ -1,5 +1,11 @@
 # Lab Informatics
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![CI](https://github.com/jababu3/lab-informatics/actions/workflows/ci.yml/badge.svg)](https://github.com/jababu3/lab-informatics/actions)
+
 A hands-on lab informatics learning environment for drug discovery. Run it entirely on your laptop. Learn by building and breaking things.  Please let me know if you have issues or questions.
 
 This system simulates the core software infrastructure used in real pharmaceutical research:
