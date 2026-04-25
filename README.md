@@ -110,12 +110,12 @@ All ELN write operations (create, sign) require login. The first registered user
 
 | Module | Topics |
 |---|---|
-| [01 — SQL & Data](./learning_modules/01_sql_and_data/) | Relational databases, ChEMBL schema, JOINs |
-| [02 — Auth & Identity](./learning_modules/02_auth_and_identity/) | bcrypt, JWT, roles, PostgreSQL users |
-| [03 — Agentic AI](./learning_modules/03_agentic_ai/) | LLM agents, Ollama, prompt engineering, simulators |
-| [04 — ELN Compliance](./learning_modules/04_eln_compliance/) | 21 CFR Part 11, audit trails, electronic signatures |
-| [05 — Service Layer Pattern](./learning_modules/05_architecture_services.md) | Architectural design, deadlock resolution, abstraction |
-| [06 — RBAC & Admin](./learning_modules/06_rbac_administration.md) | AuthZ vs AuthN, user management, 21 CFR Part 11 roles |
+| [01 — SQL & Data](./learning/01_sql_and_data/) | Relational databases, ChEMBL schema, JOINs |
+| [02 — Auth & Identity](./learning/02_auth_and_identity/) | bcrypt, JWT, roles, PostgreSQL users |
+| [03 — Agentic AI](./learning/03_agentic_ai/) | LLM agents, Ollama, prompt engineering, simulators |
+| [04 — ELN Compliance](./learning/04_eln_compliance/) | 21 CFR Part 11, audit trails, electronic signatures |
+| [05 — Service Layer Pattern](./learning/05_architecture_services.md) | Architectural design, deadlock resolution, abstraction |
+| [06 — RBAC & Admin](./learning/06_rbac_administration.md) | AuthZ vs AuthN, user management, 21 CFR Part 11 roles |
 
 ---
 
