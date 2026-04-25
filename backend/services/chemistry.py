@@ -1,12 +1,15 @@
 from typing import Dict
+
 try:
     from rdkit import Chem
     from rdkit.Chem import Descriptors, AllChem, Draw
     from rdkit.Chem.Draw import rdMolDraw2D
     from rdkit import DataStructs
+
     RDKIT_AVAILABLE = True
 except ImportError:
     RDKIT_AVAILABLE = False
+
 
 def calculate_descriptors(smiles: str) -> Dict:
     if not RDKIT_AVAILABLE:
@@ -21,10 +24,11 @@ def calculate_descriptors(smiles: str) -> Dict:
             "tpsa": Descriptors.TPSA(mol),
             "hbd": Descriptors.NumHDonors(mol),
             "hba": Descriptors.NumHAcceptors(mol),
-            "rotatable_bonds": Descriptors.NumRotatableBonds(mol)
+            "rotatable_bonds": Descriptors.NumRotatableBonds(mol),
         }
     except Exception:
         return {}
+
 
 def generate_svg(smiles: str) -> str:
     if not RDKIT_AVAILABLE:
@@ -39,6 +43,7 @@ def generate_svg(smiles: str) -> str:
     except Exception:
         pass
     return ""
+
 
 def check_lipinski(comp: dict) -> dict:
     violations = []

@@ -25,7 +25,9 @@ class AgentRunRequest(BaseModel):
     experiment_type: ExperimentType = "dose_response"
     author_name: str = "agent_scientist"
     author_title: str = "AI Research Scientist"
-    token: Optional[str] = None  # JWT token to post ELN entry; if None, entry is returned but not posted
+    token: Optional[str] = (
+        None  # JWT token to post ELN entry; if None, entry is returned but not posted
+    )
 
 
 class AgentRunResponse(BaseModel):
@@ -41,8 +43,14 @@ class AgentRunResponse(BaseModel):
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
+
 @router.post("/run")
-async def run_agent(request: Request, req: AgentRunRequest, token_payload: Optional[dict] = Depends(get_current_user_optional), db: Session = Depends(get_db)):
+async def run_agent(
+    request: Request,
+    req: AgentRunRequest,
+    token_payload: Optional[dict] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
     """
     Trigger the AI scientist agent synchronously.
     Returns the full run result including generated ELN content.
@@ -63,10 +71,10 @@ async def run_agent(request: Request, req: AgentRunRequest, token_payload: Optio
         user_obj = db.query(User).filter(User.username == username).first()
         if user_obj and author_title == "AI Research Scientist":
             author_title = user_obj.title or author_title
-            
+
     # Extract token from cookie, fallback to request body
     cookie_token = request.cookies.get("lab_jwt") or req.token or ""
-            
+
     result = _agent.run(
         experiment_type=req.experiment_type,
         author_name=author_name,
@@ -78,20 +86,26 @@ async def run_agent(request: Request, req: AgentRunRequest, token_payload: Optio
 
 # ── Status ────────────────────────────────────────────────────────────────────
 
+
 @router.get("/status")
 async def agent_status():
     """Return the result of the last agent run (or None if never run)."""
     if _agent.last_run is None:
-        return {"status": "never_run", "message": "Agent has not been run yet in this session."}
+        return {
+            "status": "never_run",
+            "message": "Agent has not been run yet in this session.",
+        }
     return _agent.last_run
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
+
 @router.get("/health")
 async def agent_health():
     """Check whether the simulator and Ollama are reachable."""
     import os
+
     return {
         "simulator_available": _agent._simulator_available,
         "ollama_available": _agent._ollama_available,

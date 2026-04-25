@@ -57,10 +57,11 @@ _content_hash = eln_service._content_hash
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
 
+
 @router.post("/")
 async def create_eln_entry(
     entry: ELNEntry,
-    current_user: User = Depends(require_role("admin", "scientist", "reviewer"))
+    current_user: User = Depends(require_role("admin", "scientist", "reviewer")),
 ):
     """Create a new ELN entry record (21 CFR Part 11 compliant)."""
     data = eln_service.create_entry(entry, current_user)
@@ -111,6 +112,7 @@ ALLOWED_CONTENT_TYPES = {
     "application/vnd.ms-excel",
 }
 
+
 @router.post("/{entry_id}/documents")
 async def upload_document(
     entry_id: str,
@@ -124,7 +126,7 @@ async def upload_document(
         if entry.get("status") == "signed":
             raise HTTPException(
                 status_code=403,
-                detail="Cannot modify a signed entry (21 CFR Part 11 §11.10(c))"
+                detail="Cannot modify a signed entry (21 CFR Part 11 §11.10(c))",
             )
 
     safe_name = f"{entry_id}_{uuid.uuid4().hex}_{file.filename}"
@@ -134,7 +136,9 @@ async def upload_document(
     if len(contents) > MAX_UPLOAD_SIZE:
         raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
     if file.content_type and file.content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(status_code=415, detail=f"Unsupported file type: {file.content_type}")
+        raise HTTPException(
+            status_code=415, detail=f"Unsupported file type: {file.content_type}"
+        )
 
     with open(dest, "wb") as f:
         f.write(contents)
@@ -157,7 +161,7 @@ async def upload_document(
                     "audit_log": _audit_event(
                         "document_uploaded",
                         "system",
-                        f'File "{file.filename}" attached'
+                        f'File "{file.filename}" attached',
                     ),
                 }
             },
@@ -185,6 +189,7 @@ async def download_document(entry_id: str, doc_id: str):
 
 # ── Electronic signature (21 CFR Part 11) ─────────────────────────────────────
 
+
 @router.post("/{entry_id}/sign")
 async def sign_eln_entry(
     entry_id: str,
@@ -207,7 +212,7 @@ async def sign_eln_entry(
     allowed_names = [current_user.username.lower()]
     if current_user.full_name:
         allowed_names.append(current_user.full_name.lower())
-        
+
     if sig.signer_name.lower() not in allowed_names:
         raise HTTPException(
             status_code=403,
@@ -228,17 +233,18 @@ async def sign_eln_entry(
         # Build signature block
         signed_at = datetime.now(timezone.utc).isoformat()
         signable_content = {
-            k: v for k, v in entry.items()
+            k: v
+            for k, v in entry.items()
             if k not in ("_id", "audit_log", "content_hash", "signature")
         }
         signature_block = {
-            "signer_name": current_user.full_name or sig.signer_name,          # §11.50(a)(1)
+            "signer_name": current_user.full_name or sig.signer_name,  # §11.50(a)(1)
             "signer_username": current_user.username,
             "signer_title": current_user.title or sig.signer_title,
-            "meaning": sig.meaning,                    # §11.50(a)(3)
-            "signed_at": signed_at,                    # §11.50(a)(2)
+            "meaning": sig.meaning,  # §11.50(a)(3)
+            "signed_at": signed_at,  # §11.50(a)(2)
             "record_hash_at_signing": _content_hash(signable_content),  # §11.10(a)
-            "auth_method": "jwt_bearer",               # §11.200(a)
+            "auth_method": "jwt_bearer",  # §11.200(a)
         }
 
         eln_collection.update_one(
@@ -252,7 +258,7 @@ async def sign_eln_entry(
                     "audit_log": _audit_event(
                         "signed",
                         sig.signer_name,
-                        f'Signed as "{sig.meaning}" by {sig.signer_name} ({sig.signer_title})'
+                        f'Signed as "{sig.meaning}" by {sig.signer_name} ({sig.signer_title})',
                     ),
                 },
             },

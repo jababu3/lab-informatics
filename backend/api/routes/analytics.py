@@ -8,6 +8,7 @@ from services.analytics import train_qsar, fit_dose_response
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
+
 @router.post("/qsar/train")
 async def qsar_train(
     data: QSARData,
@@ -20,6 +21,7 @@ async def qsar_train(
     except Exception as e:
         raise HTTPException(400, str(e))
 
+
 @router.post("/dose-response/fit")
 async def dose_response_fit_endpoint(
     data: DoseResponseData,
@@ -31,12 +33,17 @@ async def dose_response_fit_endpoint(
     except Exception as e:
         raise HTTPException(400, str(e))
 
+
 @router.get("/summary")
 async def summary(current_user: User = Depends(get_current_user)):
-    if not MONGO_AVAILABLE or compounds_collection is None or experiments_collection is None:
+    if (
+        not MONGO_AVAILABLE
+        or compounds_collection is None
+        or experiments_collection is None
+    ):
         return {"error": "Database unavailable"}
 
     return {
         "compounds": {"total": compounds_collection.count_documents({})},
-        "experiments": {"total": experiments_collection.count_documents({})}
+        "experiments": {"total": experiments_collection.count_documents({})},
     }

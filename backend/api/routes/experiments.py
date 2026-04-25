@@ -8,6 +8,7 @@ from api.postgres import User
 
 router = APIRouter(prefix="/experiments", tags=["experiments"])
 
+
 @router.post("/")
 async def create_experiment(
     exp: Experiment,
@@ -19,6 +20,7 @@ async def create_experiment(
         result = experiments_collection.insert_one(data)
         data["_id"] = str(result.inserted_id)
     return {"status": "success", "experiment": data}
+
 
 @router.get("/")
 async def list_experiments(

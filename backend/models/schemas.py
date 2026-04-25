@@ -2,10 +2,12 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
+
 class Compound(BaseModel):
     name: str
     smiles: str
     tags: List[str] = []
+
 
 class Experiment(BaseModel):
     title: str
@@ -15,20 +17,25 @@ class Experiment(BaseModel):
     target: Optional[str] = None
     status: str = "planned"
 
+
 class DoseResponseData(BaseModel):
     concentrations: List[float]
     responses: List[float]
 
+
 class QSARData(BaseModel):
     compounds: List[Dict[str, Any]]
 
+
 # ── ELN Models ───────────────────────────────────────────────────────────────
+
 
 class ELNSection(BaseModel):
     section_id: str
     section_type: str  # "procedure", "observation", "result", "conclusion", "note"
     title: str
     content: str
+
 
 class ELNEntry(BaseModel):
     title: str
@@ -39,6 +46,7 @@ class ELNEntry(BaseModel):
     sections: List[ELNSection] = []
     tags: List[str] = []
 
+
 class SignatureRequest(BaseModel):
     """
     21 CFR Part 11 §11.50 compliant signature payload.
@@ -46,13 +54,15 @@ class SignatureRequest(BaseModel):
     Re-authentication is represented by the signer_name matching the entry author
     and the explicit acknowledgment_text affirmation.
     """
-    signer_name: str            # §11.50(a)(1): printed name
+
+    signer_name: str  # §11.50(a)(1): printed name
     signer_title: str
-    meaning: str                # §11.50(a)(3): purpose/meaning of signature
-    acknowledgment_text: Optional[str] = None    # made optional for UX simplicity
+    meaning: str  # §11.50(a)(3): purpose/meaning of signature
+    acknowledgment_text: Optional[str] = None  # made optional for UX simplicity
 
 
 # ── Auth / User Models ────────────────────────────────────────────────────────
+
 
 class UserCreate(BaseModel):
     username: str
@@ -62,12 +72,14 @@ class UserCreate(BaseModel):
     title: Optional[str] = ""
     role: Optional[str] = "scientist"  # ignored on first-user registration
 
+
 class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     title: Optional[str] = None
     email: Optional[str] = None
     current_password: Optional[str] = None
     new_password: Optional[str] = Field(None, min_length=12)
+
 
 class AdminUserUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -79,8 +91,10 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+
 class UserRoleUpdate(BaseModel):
     role: str
+
 
 class UserStatusUpdate(BaseModel):
     is_active: bool

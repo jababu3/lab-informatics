@@ -26,7 +26,15 @@ from api.auth import (
     get_current_user,
     require_role,
 )
-from models.schemas import UserCreate, UserOut, Token, UserRoleUpdate, UserStatusUpdate, UserProfileUpdate, AdminUserUpdate
+from models.schemas import (
+    UserCreate,
+    UserOut,
+    Token,
+    UserRoleUpdate,
+    UserStatusUpdate,
+    UserProfileUpdate,
+    AdminUserUpdate,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -40,6 +48,7 @@ def _require_postgres():
 
 
 # ── Register ──────────────────────────────────────────────────────────────────
+
 
 @router.post("/register", response_model=UserOut, status_code=201)
 @limiter.limit("5/minute")
@@ -65,6 +74,7 @@ async def register(
     # also allowing the first-user open-registration path.
     if not is_first_user:
         from fastapi import Request
+
         # Callers must supply Authorization: Bearer <token> themselves
         # We re-use the require_role logic via a secondary dependency in the
         # route signature — but for simplicity we raise FORBIDDEN here.
@@ -125,6 +135,7 @@ async def admin_create_user(
 
 # ── Login ─────────────────────────────────────────────────────────────────────
 
+
 @router.post("/login", response_model=Token)
 @limiter.limit("5/minute")
 async def login(
@@ -136,10 +147,14 @@ async def login(
     """Exchange username + password for a JWT access token."""
     _require_postgres()
 
-    user = db.query(User).filter(
-        User.username == form_data.username,
-        User.is_active == True,
-    ).first()
+    user = (
+        db.query(User)
+        .filter(
+            User.username == form_data.username,
+            User.is_active == True,
+        )
+        .first()
+    )
 
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -156,7 +171,7 @@ async def login(
             "title": user.title,
         }
     )
-    
+
     response.set_cookie(
         key="lab_jwt",
         value=token,
@@ -183,6 +198,7 @@ async def logout(response: Response):
 
 # ── Current user ──────────────────────────────────────────────────────────────
 
+
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
@@ -190,12 +206,14 @@ async def me(current_user: User = Depends(get_current_user)):
 
 # ── Admin: User Management ────────────────────────────────────────────────────
 
+
 @router.get("/users", response_model=List[UserOut])
 async def list_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
     return db.query(User).all()
+
 
 @router.patch("/users/{user_id}/role", response_model=UserOut)
 async def update_user_role(
@@ -208,12 +226,13 @@ async def update_user_role(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     # Optional: prevent demoting the last admin. We'll skip for brevity as this is a lab environment.
     user.role = role_update.role
     db.commit()
     db.refresh(user)
     return user
+
 
 @router.patch("/users/{user_id}/status", response_model=UserOut)
 async def update_user_status(
@@ -226,14 +245,17 @@ async def update_user_status(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     if user.id == current_user.id and not status_update.is_active:
-        raise HTTPException(status_code=400, detail="You cannot deactivate your own account")
+        raise HTTPException(
+            status_code=400, detail="You cannot deactivate your own account"
+        )
 
     user.is_active = status_update.is_active
     db.commit()
     db.refresh(user)
     return user
+
 
 @router.put("/profile", response_model=UserOut)
 async def update_profile(
@@ -243,7 +265,7 @@ async def update_profile(
 ):
     """Self-service endpoint to update own profile fields and password."""
     _require_postgres()
-    
+
     if profile_update.email is not None and profile_update.email != current_user.email:
         if db.query(User).filter(User.email == profile_update.email).first():
             raise HTTPException(status_code=400, detail="Email already registered")
@@ -251,18 +273,21 @@ async def update_profile(
 
     if profile_update.full_name is not None:
         current_user.full_name = profile_update.full_name
-    
+
     if profile_update.title is not None:
         current_user.title = profile_update.title
 
     if profile_update.new_password:
-        if not profile_update.current_password or not verify_password(profile_update.current_password, current_user.hashed_password):
+        if not profile_update.current_password or not verify_password(
+            profile_update.current_password, current_user.hashed_password
+        ):
             raise HTTPException(status_code=400, detail="Incorrect current password")
         current_user.hashed_password = hash_password(profile_update.new_password)
 
     db.commit()
     db.refresh(current_user)
     return current_user
+
 
 @router.put("/users/{user_id}", response_model=UserOut)
 async def admin_update_user(
@@ -276,18 +301,18 @@ async def admin_update_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+
     if user_update.email is not None and user_update.email != user.email:
         if db.query(User).filter(User.email == user_update.email).first():
             raise HTTPException(status_code=400, detail="Email already registered")
         user.email = user_update.email
-        
+
     if user_update.full_name is not None:
         user.full_name = user_update.full_name
-        
+
     if user_update.title is not None:
         user.title = user_update.title
-        
+
     db.commit()
     db.refresh(user)
     return user

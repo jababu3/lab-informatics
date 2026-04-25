@@ -2,6 +2,7 @@ import os
 
 try:
     from pymongo import MongoClient
+
     mongo_client = MongoClient(os.getenv("MONGODB_URL", "mongodb://localhost:27017/"))
     db = mongo_client.lab_informatics
     compounds_collection = db.compounds
@@ -17,6 +18,7 @@ except Exception as e:
 
 try:
     from rdkit import Chem
+
     RDKIT_AVAILABLE = True
 except ImportError:
     RDKIT_AVAILABLE = False

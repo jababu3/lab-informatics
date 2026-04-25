@@ -5,7 +5,12 @@ from models.schemas import Compound
 from api.database import MONGO_AVAILABLE, compounds_collection
 from api.auth import get_current_user
 from api.postgres import User
-from services.chemistry import calculate_descriptors, generate_svg, check_lipinski, RDKIT_AVAILABLE
+from services.chemistry import (
+    calculate_descriptors,
+    generate_svg,
+    check_lipinski,
+    RDKIT_AVAILABLE,
+)
 
 try:
     from bson import ObjectId
@@ -21,6 +26,7 @@ except ImportError:
     pass
 
 router = APIRouter(prefix="/compounds", tags=["compounds"])
+
 
 @router.post("/")
 async def create_compound(
@@ -40,6 +46,7 @@ async def create_compound(
 
     return {"status": "success", "compound": data}
 
+
 @router.get("/")
 async def list_compounds(
     limit: int = Query(50, ge=1, le=1000),
@@ -54,6 +61,7 @@ async def list_compounds(
         c["_id"] = str(c["_id"])
 
     return {"compounds": compounds, "total": compounds_collection.count_documents({})}
+
 
 @router.get("/{compound_id}")
 async def get_compound(
@@ -73,6 +81,7 @@ async def get_compound(
         raise HTTPException(404, "Not found")
     compound["_id"] = str(compound["_id"])
     return compound
+
 
 @router.post("/similarity/search")
 async def similarity_search(

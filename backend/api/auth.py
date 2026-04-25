@@ -27,7 +27,9 @@ from api.postgres import User, get_db, POSTGRES_AVAILABLE
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me-in-production-use-a-long-random-string")
+SECRET_KEY = os.getenv(
+    "JWT_SECRET_KEY", "change-me-in-production-use-a-long-random-string"
+)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))  # 8 hours
 
@@ -48,6 +50,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT ───────────────────────────────────────────────────────────────────────
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
@@ -63,7 +66,10 @@ def decode_token(token: str) -> dict:
 
 # ── Dependencies ──────────────────────────────────────────────────────────────
 
-def get_token(request: Request, bearer_token: str = Depends(oauth2_scheme)) -> Optional[str]:
+
+def get_token(
+    request: Request, bearer_token: str = Depends(oauth2_scheme)
+) -> Optional[str]:
     """Extract token from lab_jwt cookie or fallback to Authorization header."""
     return request.cookies.get("lab_jwt") or bearer_token
 
@@ -91,7 +97,9 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.username == username, User.is_active == True).first()
+    user = (
+        db.query(User).filter(User.username == username, User.is_active == True).first()
+    )
     if user is None:
         raise credentials_exception
     return user
@@ -117,6 +125,7 @@ def require_role(*roles: str):
     Dependency factory for role-based access control.
     Usage: Depends(require_role('admin', 'scientist'))
     """
+
     async def _check(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in roles:
             raise HTTPException(
@@ -124,4 +133,5 @@ def require_role(*roles: str):
                 detail=f"Role '{current_user.role}' is not authorized. Required: {roles}",
             )
         return current_user
+
     return _check

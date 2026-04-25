@@ -41,6 +41,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         return response
 
+
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(compounds.router)
@@ -52,9 +53,11 @@ app.include_router(eln.router)
 app.include_router(auth_router.router)
 app.include_router(agent_router.router)
 
+
 @app.get("/")
 async def root():
     return {"message": "Lab Informatics API", "version": "1.0.0", "docs": "/docs"}
+
 
 @app.get("/health")
 async def health():

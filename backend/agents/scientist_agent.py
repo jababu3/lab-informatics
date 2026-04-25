@@ -36,23 +36,59 @@ logger = logging.getLogger(__name__)
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral:7b")
 ELN_API_URL = os.getenv("ELN_API_URL", "http://localhost:8000")
-AGENT_JWT_TOKEN = os.getenv("AGENT_JWT_TOKEN", "")  # Service account token for auto-posting
+AGENT_JWT_TOKEN = os.getenv(
+    "AGENT_JWT_TOKEN", ""
+)  # Service account token for auto-posting
 
 ExperimentType = Literal["dose_response", "spr", "purity", "flow", "hci"]
 
 # Simulated scientist personas the agent cycles through
 SCIENTIST_PERSONAS = [
-    {"username": "agent_scientist", "full_name": "AI Lab Scientist", "title": "Research Scientist I"},
+    {
+        "username": "agent_scientist",
+        "full_name": "AI Lab Scientist",
+        "title": "Research Scientist I",
+    },
 ]
 
 # Compound pools the agent will choose from
 COMPOUND_POOL = [
-    {"compound_id": "CMP-001", "compound_name": "Staurosporine", "source_well": "A1", "concentration": 10000},
-    {"compound_id": "CMP-002", "compound_name": "Gefitinib", "source_well": "A2", "concentration": 10000},
-    {"compound_id": "CMP-003", "compound_name": "Imatinib", "source_well": "A3", "concentration": 10000},
-    {"compound_id": "CMP-004", "compound_name": "Erlotinib", "source_well": "A4", "concentration": 10000},
-    {"compound_id": "CMP-005", "compound_name": "Lapatinib", "source_well": "A5", "concentration": 10000},
-    {"compound_id": "DMSO", "compound_name": "DMSO Control", "source_well": "P1", "concentration": 0},
+    {
+        "compound_id": "CMP-001",
+        "compound_name": "Staurosporine",
+        "source_well": "A1",
+        "concentration": 10000,
+    },
+    {
+        "compound_id": "CMP-002",
+        "compound_name": "Gefitinib",
+        "source_well": "A2",
+        "concentration": 10000,
+    },
+    {
+        "compound_id": "CMP-003",
+        "compound_name": "Imatinib",
+        "source_well": "A3",
+        "concentration": 10000,
+    },
+    {
+        "compound_id": "CMP-004",
+        "compound_name": "Erlotinib",
+        "source_well": "A4",
+        "concentration": 10000,
+    },
+    {
+        "compound_id": "CMP-005",
+        "compound_name": "Lapatinib",
+        "source_well": "A5",
+        "concentration": 10000,
+    },
+    {
+        "compound_id": "DMSO",
+        "compound_name": "DMSO Control",
+        "source_well": "P1",
+        "concentration": 0,
+    },
 ]
 
 
@@ -69,6 +105,7 @@ class LabScientistAgent:
     def _check_simulator(self) -> bool:
         try:
             from lab_data_simulator.simulators import PlateReader, SPRSimulator
+
             return True
         except ImportError as e:
             logger.warning(f"lab-data-simulator not available: {e}")
@@ -109,7 +146,13 @@ class LabScientistAgent:
         for cpd in compounds:
             cid = cpd["compound_id"]
             if cid == "DMSO":
-                ground_truth[cid] = {"a": 50000, "b": 1.0, "c": 1.0, "d": 50000, "noise": 800}
+                ground_truth[cid] = {
+                    "a": 50000,
+                    "b": 1.0,
+                    "c": 1.0,
+                    "d": 50000,
+                    "noise": 800,
+                }
             else:
                 ic50 = round(random.uniform(0.05, 20.0), 3)
                 ic50_results[cid] = ic50
@@ -122,28 +165,40 @@ class LabScientistAgent:
                 }
 
         reader = PheraSTAR()
-        result_df = reader.run_simulation({
-            "mode": "picklist_driven",
-            "params": {
-                "picklist": picklist,
-                "ground_truth": ground_truth,
-                "assay_volume_nl": 50000.0,
-                "baseline": 100,
-                "baseline_noise": 20,
-            },
-        })
+        result_df = reader.run_simulation(
+            {
+                "mode": "picklist_driven",
+                "params": {
+                    "picklist": picklist,
+                    "ground_truth": ground_truth,
+                    "assay_volume_nl": 50000.0,
+                    "baseline": 100,
+                    "baseline_noise": 20,
+                },
+            }
+        )
 
         return {
             "type": "dose_response",
-            "compounds": [c["compound_name"] for c in compounds if c["compound_id"] != "DMSO"],
+            "compounds": [
+                c["compound_name"] for c in compounds if c["compound_id"] != "DMSO"
+            ],
             "compound_details": compounds,
             "ic50_results": ic50_results,
             "n_datapoints": len(result_df),
             "plate_id": ground_truth and list(ground_truth.keys())[0],
             "raw_summary": {
-                "mean_signal": float(result_df["signal"].mean()) if "signal" in result_df.columns else None,
+                "mean_signal": (
+                    float(result_df["signal"].mean())
+                    if "signal" in result_df.columns
+                    else None
+                ),
                 "n_wells": len(result_df),
-                "n_failed_transfers": int((picklist["transfer_status"] == "FAILED").sum()) if "transfer_status" in picklist.columns else 0,
+                "n_failed_transfers": (
+                    int((picklist["transfer_status"] == "FAILED").sum())
+                    if "transfer_status" in picklist.columns
+                    else 0
+                ),
             },
         }
 
@@ -184,7 +239,9 @@ class LabScientistAgent:
         if results_df is not None and not results_df.empty:
             for _, row in results_df.iterrows():
                 cid = str(row.get("compound_id", row.get("sample", "unknown")))
-                purity_results[cid] = float(row.get("purity_pct", row.get("purity", 95)))
+                purity_results[cid] = float(
+                    row.get("purity_pct", row.get("purity", 95))
+                )
 
         return {
             "type": "purity",
@@ -206,7 +263,9 @@ class LabScientistAgent:
                 cid = str(row.get("compound_id", row.get("sample", "unknown")))
                 population_results[cid] = {
                     "live_pct": float(row.get("live_pct", row.get("viability", 85))),
-                    "apoptotic_pct": float(row.get("apoptotic_pct", row.get("apoptosis", 10))),
+                    "apoptotic_pct": float(
+                        row.get("apoptotic_pct", row.get("apoptosis", 10))
+                    ),
                 }
 
         return {
@@ -244,15 +303,21 @@ class LabScientistAgent:
                 "compounds": compounds[:2],
                 "ic50_results": {"CMP-001": 0.23, "CMP-002": 4.7},
                 "n_datapoints": 64,
-                "raw_summary": {"mean_signal": 28456.0, "n_wells": 96, "n_failed_transfers": 2},
+                "raw_summary": {
+                    "mean_signal": 28456.0,
+                    "n_wells": 96,
+                    "n_failed_transfers": 2,
+                },
                 "mock": True,
             }
         elif experiment_type == "spr":
             return {
                 "type": "spr",
                 "compounds": ["CMP-001", "CMP-002"],
-                "kd_results": {"CMP-001": {"KD_nM": 12.4, "kon": 1.2e5, "koff": 1.5e-3},
-                               "CMP-002": {"KD_nM": 890.0, "kon": 4.5e4, "koff": 4.0e-2}},
+                "kd_results": {
+                    "CMP-001": {"KD_nM": 12.4, "kon": 1.2e5, "koff": 1.5e-3},
+                    "CMP-002": {"KD_nM": 890.0, "kon": 4.5e4, "koff": 4.0e-2},
+                },
                 "target": "EGFR",
                 "mock": True,
             }
@@ -265,25 +330,37 @@ class LabScientistAgent:
         compounds = ", ".join(experiment_data.get("compounds", []))
 
         if exp_type == "dose_response":
-            key_findings = "; ".join([
-                f"{cid}: IC50 = {v:.3f} µM" for cid, v in analysis.get("ic50_results", {}).items()
-            ])
+            key_findings = "; ".join(
+                [
+                    f"{cid}: IC50 = {v:.3f} µM"
+                    for cid, v in analysis.get("ic50_results", {}).items()
+                ]
+            )
             objective = f"Determine potency (IC50) of {compounds} in a 384-well biochemical assay"
         elif exp_type == "spr":
-            key_findings = "; ".join([
-                f"{cid}: KD = {v['KD_nM']:.1f} nM" for cid, v in analysis.get("kd_results", {}).items()
-            ])
+            key_findings = "; ".join(
+                [
+                    f"{cid}: KD = {v['KD_nM']:.1f} nM"
+                    for cid, v in analysis.get("kd_results", {}).items()
+                ]
+            )
             target = experiment_data.get("target", "target protein")
             objective = f"Measure binding kinetics of {compounds} to {target} by SPR"
         elif exp_type == "purity":
-            key_findings = "; ".join([
-                f"{cid}: {v:.1f}% purity" for cid, v in analysis.get("purity_results", {}).items()
-            ])
+            key_findings = "; ".join(
+                [
+                    f"{cid}: {v:.1f}% purity"
+                    for cid, v in analysis.get("purity_results", {}).items()
+                ]
+            )
             objective = f"Assess compound purity of {compounds} by HPLC-UV"
         elif exp_type == "flow_cytometry":
-            key_findings = "; ".join([
-                f"{cid}: {v['live_pct']:.1f}% viability" for cid, v in analysis.get("population_results", {}).items()
-            ])
+            key_findings = "; ".join(
+                [
+                    f"{cid}: {v['live_pct']:.1f}% viability"
+                    for cid, v in analysis.get("population_results", {}).items()
+                ]
+            )
             objective = f"Assess cellular viability and apoptosis for {compounds}"
         else:
             key_findings = str(analysis)
@@ -318,6 +395,7 @@ Do not include any text outside these XML tags."""
         """Call the Ollama API and return generated text."""
         try:
             import ollama as ollama_client
+
             response = ollama_client.chat(
                 model=OLLAMA_MODEL,
                 messages=[{"role": "user", "content": prompt}],
@@ -342,6 +420,7 @@ Do not include any text outside these XML tags."""
     def _parse_sections(self, narrative: str) -> list:
         """Extract XML-tagged sections from LLM output."""
         import re
+
         sections = []
         tags = [
             ("procedure", "Experimental Procedure"),
@@ -351,12 +430,14 @@ Do not include any text outside these XML tags."""
         for tag, title in tags:
             match = re.search(rf"<{tag}>(.*?)</{tag}>", narrative, re.DOTALL)
             content = match.group(1).strip() if match else f"[{title} not generated]"
-            sections.append({
-                "section_id": str(uuid.uuid4()),
-                "section_type": tag if tag != "observations" else "observation",
-                "title": title,
-                "content": content,
-            })
+            sections.append(
+                {
+                    "section_id": str(uuid.uuid4()),
+                    "section_type": tag if tag != "observations" else "observation",
+                    "title": title,
+                    "content": content,
+                }
+            )
         return sections
 
     # ── ELN Assembly ──────────────────────────────────────────────────────────
@@ -393,12 +474,14 @@ Do not include any text outside these XML tags."""
 
         # Add a results section with structured data
         results_content = self._format_results(sim_data, analysis)
-        sections.append({
-            "section_id": str(uuid.uuid4()),
-            "section_type": "result",
-            "title": "Quantitative Results",
-            "content": results_content,
-        })
+        sections.append(
+            {
+                "section_id": str(uuid.uuid4()),
+                "section_type": "result",
+                "title": "Quantitative Results",
+                "content": results_content,
+            }
+        )
 
         return {
             "title": title_map.get(exp_type, f"{exp_type.title()} — {date_str}"),
@@ -420,7 +503,9 @@ Do not include any text outside these XML tags."""
             lines.append(f"Target: {sim_data.get('target', 'N/A')}")
             lines.append("Binding Kinetics:")
             for cid, kd in analysis["kd_results"].items():
-                lines.append(f"  {cid}: KD = {kd['KD_nM']:.1f} nM, kon = {kd['kon']:.2e}, koff = {kd['koff']:.2e}")
+                lines.append(
+                    f"  {cid}: KD = {kd['KD_nM']:.1f} nM, kon = {kd['kon']:.2e}, koff = {kd['koff']:.2e}"
+                )
         elif exp_type == "purity" and analysis.get("purity_results"):
             lines.append("Purity Results:")
             for cid, p in analysis["purity_results"].items():
@@ -428,12 +513,18 @@ Do not include any text outside these XML tags."""
         elif exp_type == "flow_cytometry" and analysis.get("population_results"):
             lines.append("Cell Population Results:")
             for cid, pop in analysis["population_results"].items():
-                lines.append(f"  {cid}: {pop['live_pct']:.1f}% viable, {pop['apoptotic_pct']:.1f}% apoptotic")
+                lines.append(
+                    f"  {cid}: {pop['live_pct']:.1f}% viable, {pop['apoptotic_pct']:.1f}% apoptotic"
+                )
         else:
             lines.append("See experiment data for full results.")
-        lines.append(f"\nData source: lab-data-simulator | Generated: {datetime.now(timezone.utc).isoformat()}")
+        lines.append(
+            f"\nData source: lab-data-simulator | Generated: {datetime.now(timezone.utc).isoformat()}"
+        )
         if sim_data.get("mock"):
-            lines.append("⚠️  Note: Generated with mock data (lab-data-simulator not installed in this environment).")
+            lines.append(
+                "⚠️  Note: Generated with mock data (lab-data-simulator not installed in this environment)."
+            )
         return "\n".join(lines)
 
     # ── Post to ELN ───────────────────────────────────────────────────────────
@@ -441,7 +532,7 @@ Do not include any text outside these XML tags."""
     def _post_to_eln(self, entry_dict: dict, token: str) -> dict:
         """
         POSTs the ELN entry.
-        
+
         Logic:
           - If the agent is running inside the backend process (has access to eln_service),
             it calls the service directly to avoid deadlocking the single-threaded server.
@@ -451,23 +542,34 @@ Do not include any text outside these XML tags."""
             # 1. Try In-Process Service (Prevents Deadlock)
             db_gen = get_db()
             db_session: Session = next(db_gen)
-            
+
             # Find the user record for the agent
-            agent_user = db_session.query(User).filter(User.username == entry_dict["author"]).first()
-            
+            agent_user = (
+                db_session.query(User)
+                .filter(User.username == entry_dict["author"])
+                .first()
+            )
+
             if agent_user:
-                logger.info(f"Agent: Saving entry via in-process service for {agent_user.username}")
+                logger.info(
+                    f"Agent: Saving entry via in-process service for {agent_user.username}"
+                )
                 # Re-validate as ELNEntry schema
                 entry_schema = ELNEntry(**entry_dict)
                 saved_entry = eln_service.create_entry(entry_schema, agent_user)
                 return {"status": "success", "entry": saved_entry}
-            
+
         except Exception as e:
             logger.warning(f"In-process save failed, falling back to HTTP: {e}")
 
         # 2. Fallback to HTTP (will likely timeout if running in single-threaded process)
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-        resp = requests.post(f"{ELN_API_URL}/eln/", json=entry_dict, headers=headers, timeout=10)
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        resp = requests.post(
+            f"{ELN_API_URL}/eln/", json=entry_dict, headers=headers, timeout=10
+        )
         resp.raise_for_status()
         return resp.json()
 
@@ -497,7 +599,10 @@ Do not include any text outside these XML tags."""
             # 1. Simulate
             logger.info(f"Agent: simulating {experiment_type}")
             sim_data = self.simulate(experiment_type)
-            result["simulation"] = {"type": sim_data["type"], "compounds": sim_data.get("compounds", [])}
+            result["simulation"] = {
+                "type": sim_data["type"],
+                "compounds": sim_data.get("compounds", []),
+            }
 
             # 2. Analyze
             analysis = self._analyze(sim_data)
@@ -510,7 +615,9 @@ Do not include any text outside these XML tags."""
             result["narrative_generated"] = True
 
             # 4. Assemble ELN entry
-            entry = self._build_eln_entry(sim_data, analysis, narrative, author_name, author_title)
+            entry = self._build_eln_entry(
+                sim_data, analysis, narrative, author_name, author_title
+            )
 
             # 5. Post to ELN API (only if token provided)
             use_token = token or AGENT_JWT_TOKEN
@@ -522,7 +629,9 @@ Do not include any text outside these XML tags."""
             else:
                 result["entry"] = entry
                 result["posted"] = False
-                result["note"] = "Set AGENT_JWT_TOKEN env var or pass token= to auto-post to ELN"
+                result["note"] = (
+                    "Set AGENT_JWT_TOKEN env var or pass token= to auto-post to ELN"
+                )
 
             result["status"] = "success"
         except Exception as e:
